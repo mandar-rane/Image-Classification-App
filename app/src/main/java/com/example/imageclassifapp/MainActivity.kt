@@ -83,14 +83,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun classifyImage(image: Bitmap?) {
-
+        
 
 
         val model = Model.newInstance(applicationContext)
 
 // Creates inputs for reference.
         val inputFeature0 =
-            TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32
+            TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
 
         val byteBuffer: ByteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3)
         byteBuffer.order(ByteOrder.nativeOrder())
