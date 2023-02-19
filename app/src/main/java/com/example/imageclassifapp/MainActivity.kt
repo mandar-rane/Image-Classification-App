@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                 image = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
                 binding.image.setImageBitmap(image)
 
-                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, fa)
+                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false)
                 classifyImage(image)
             }else{
                 val dat: Uri? = data!!.data
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun classifyImage(image: Bitmap?) {
-        
+
 
 
         val model = Model.newInstance(applicationContext)
