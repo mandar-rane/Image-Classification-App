@@ -17,7 +17,9 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.get
 import com.example.imageclassifapp.databinding.ActivityMainBinding
 import com.example.imageclassifapp.ml.Model
+import com.example.imageclassifapp.ml.Newmodel
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.io.IOException
@@ -83,51 +85,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun classifyImage(image: Bitmap?) {
-
-
-
+        //
         val model = Model.newInstance(applicationContext)
+        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
+        //
 
-// Creates inputs for reference.
-        val inputFeature0 =
-            TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-
-        val byteBuffer: ByteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3)
+        val byteBuffer: ByteBuffer = ByteBuffer.allocateDirect(4*imageSize * imageSize * 3)
         byteBuffer.order(ByteOrder.nativeOrder())
-
         val intValues = IntArray(imageSize * imageSize)
         image!!.getPixels(intValues, 0, image.width, 0, 0, image.width, image.height)
         var pixel = 0
-
         for (i in 0 until imageSize) {
             for (j in 0 until imageSize) {
-                var value = intValues[pixel++]
-                byteBuffer.putFloat(((value shr 16)).and(0xFF).toFloat() * ((1F) / 1))
-                byteBuffer.putFloat(((value shr 8)).and(0xFF).toFloat() * ((1F) / 1))
-                byteBuffer.putFloat((value).and(0xFF).toFloat() * ((1F) / 1))
+                val value = intValues[pixel++]
+                val r = (value shr 16) and 0xFF
+                val g = (value shr 8) and 0xFF
+                val b = value and 0xFF
+                // Normalize pixel values to [0, 1]
+                val normalizedPixelValue = (r + g + b) / 3.0f / 255.0f
+                byteBuffer.putFloat(normalizedPixelValue)
             }
         }
 
-
+        //
         inputFeature0.loadBuffer(byteBuffer)
-
-// Runs model inference and gets result.
         val outputs = model.process(inputFeature0)
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+        //
 
         val confidences = outputFeature0.floatArray
-        val conf = arrayListOf<Float>()
-        confidences.forEach {
-            conf.add(it)
-        }
-        Log.d("confindeces: ","${conf.toString()}")
+
         var maxPos = 0
         for (i in 1 until confidences.size) {
             if (confidences[i] > confidences[maxPos]) {
                 maxPos = i
             }
         }
-        Log.d("confindeces: ","${maxPos.toString()}")
 
         val classes = arrayOf(
             "Bloody_mary",
@@ -142,8 +135,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.result.text = classes[maxPos]
 
-
-// Releases model resources if no longer used.
         model.close()
 
     }
